@@ -2,22 +2,22 @@ import os
 import hashlib
 from datetime import datetime
 import sys
+from distutils import util
 
 # Check arguments to see if hashes for files should be calculated
 # Setting this as True can make program significantly slower if large files
 INCLUDE_HASH = False
 if len(sys.argv) > 1:
-    INCLUDE_HASH = bool(sys.argv[1])
+    INCLUDE_HASH = bool(util.strtobool(sys.argv[1]))
 
 INCLUDE_SIZE = True
 if len(sys.argv) > 2:
-    INCLUDE_SIZE = bool(sys.argv[2])
+    INCLUDE_SIZE = bool(util.strtobool(sys.argv[2]))
 
 # If not CSV then will return as txt, in a list format
 CSV_FORMAT = True
 if len(sys.argv) > 3:
-    print("working")
-    CSV_FORMAT = bool(sys.argv[3])
+    CSV_FORMAT = bool(util.strtobool(sys.argv[3]))
 
 def get_hash(filename):
     '''
@@ -123,7 +123,7 @@ def write_txt(output, extensions=exts, paths=files, sep=SEP, include_hash=INCLUD
             if include_size:
                 output.write(sep + "File size: " + str(round(os.path.getsize(path)/float((1024*1024)), 4)))
 
-            output.write(sep + "-------------------" + sep)
+        output.write("-------------------" + sep + sep)
     
 
 with open(os.path.join(os.getcwd(), fname), "w+") as f:
