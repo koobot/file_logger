@@ -16,6 +16,7 @@ if len(sys.argv) > 2:
 # If not CSV then will return as txt, in a list format
 CSV_FORMAT = True
 if len(sys.argv) > 3:
+    print("working")
     CSV_FORMAT = bool(sys.argv[3])
 
 def get_hash(filename):
@@ -80,47 +81,56 @@ if CSV_FORMAT:
 else:
     SEP = "\n"
 
+def write_csv(output, paths=files, sep=SEP, include_hash=INCLUDE_HASH, include_size=INCLUDE_SIZE):
+    '''
+    Write CSV format. Assumes it's being used in `with open()` statement
+    '''
+    # Header
+    output.write("file" + sep + "ext")
+    if include_hash:
+        output.write(sep + "hash")
+    if include_size:
+        output.write(sep + "size_MB")
+    output.write("\n")
+
+    # Body
+    for extension, filepaths in paths.items():
+        for path in filepaths:
+            output.write(path + sep + extension)
+
+            if include_hash:
+                output.write(sep + str(get_hash(path)))
+            if include_size:
+                output.write(sep + str(round(os.path.getsize(path)/float((1024*1024)), 4)))
+            output.write("\n")
+
+def write_txt(output, extensions=exts, paths=files, sep=SEP, include_hash=INCLUDE_HASH, include_size=INCLUDE_SIZE):
+    '''
+    Write text file format. Assumes it's being used in `with open()` statement
+    '''
+    for ext in extensions:
+        output.write("-------------------" + sep)
+        if not ext:
+            output.write("Files with no extension:\n")
+        else:
+            output.write(ext + " files:\n")
+
+        for path in paths[ext]:
+            output.write(path + sep)
+
+            if include_hash:
+                output.write(sep + "File hash: " + str(get_hash(path)))
+            if include_size:
+                output.write(sep + "File size: " + str(round(os.path.getsize(path)/float((1024*1024)), 4)))
+
+            output.write(sep + "-------------------" + sep)
+    
+
 with open(os.path.join(os.getcwd(), fname), "w+") as f:
     if CSV_FORMAT:
-        f.write("file" + SEP + "ext")
-        if INCLUDE_HASH:
-            f.write(SEP + "hash")
-        if INCLUDE_SIZE:
-            f.write(SEP + "size_MB")
-        f.write("\n")
-
-    for ext in exts:
-        if not CSV_FORMAT:
-            f.write("-------------------\n")
-            if not ext:
-                f.write("Files with no extension:\n")
-            else:
-                f.write(ext + " files:\n")
-
-        for file in files[ext]:
-            f.write(file + SEP)
-
-            if CSV_FORMAT:
-                f.write(ext)
-
-            if INCLUDE_HASH:
-                hash_str = str(get_hash(file))
-                if CSV_FORMAT:
-                    f.write(SEP + hash_str)
-                else:
-                    f.write(SEP + "File hash: " + hash_str)
-
-            if INCLUDE_SIZE:
-                size_str = str(round(os.path.getsize(file)/float((1024*1024)), 4))
-                if CSV_FORMAT:
-                    f.write(SEP + size_str)
-                else:
-                    f.write(SEP + "File size: " + size_str + " MB")
-
-            if CSV_FORMAT:
-                f.write("\n")
-            else:
-                f.write("-------------------\n")
+        write_csv(output=f)
+    else:
+        write_txt(output=f)
 
 print("Done!")
 print("Current locations of all files have been logged to", fname)
